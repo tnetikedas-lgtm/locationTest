@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>位置情報テスト</title>
+
+        <link
+            rel="stylesheet"
+            href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        />
+
+        <style>
+            body{
+                font-family:sans-serif;
+                margin:20px;
+            }
+            .status{
+                padding:10px;
+                margin:10px 0;
+                border:1px solid #ccc;
+            }
+            #map{
+                height:400px;
+                margin-top:20px;
+            }
+        </style>
+    </head>
+
+    <body>
+
+        <h1>位置情報取得テスト</h1>
+
+        <div class="status">
+            ① 端末位置情報状態:
+            <span id="devicePermission">確認中...</span>
+        </div>
+
+        <div class="status">
+            ② ブラウザ権限状態（推定）:
+            <span id="browserPermission">確認中...</span>
+        </div>
+
+        <div class="status">
+            ③ 位置情報取得（GPS無い端末だとガバい）:
+            <span id="locationResult">未取得</span>
+        </div>
+
+        <button onclick="checkLocation()">位置情報取得テスト</button>
+
+        <div id="map"></div>
+
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+        <script>
+
+            let map = L.map('map').setView([35.681236,139.767125],13);
+
+            L.tileLayer(
+                'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                {
+                    attribution:'© OpenStreetMap'
+                }
+            ).addTo(map);
+
+            async function checkPermission(){
+                if(!navigator.permissions){
+                    document.getElementById("browserPermission").innerText =
+                    "Permissions API 非対応";
+                    return;
+                }
+
+                try{
+                    const result =
+                        await navigator.permissions.query({
+                        name:"geolocation"
+                    });
+
+                    document.getElementById("browserPermission").innerText =
+                    result.state;
+
+                    result.onchange = () =>{
+                        document.getElementById("browserPermission").innerText =
+                        result.state;
+                    };
+
+                }catch(e){
+                    document.getElementById("browserPermission").innerText =
+                    "取得失敗";
+                }
+            }
+
+            function checkLocation(){
+                if(!navigator.geolocation){
+                    document.getElementById("devicePermission").innerText =
+                    "位置情報API非対応";
+                    return;
+                }
+
+                document.getElementById("devicePermission").innerText =
+                "利用可能";
+
+                navigator.geolocation.getCurrentPosition(
+
+                    function(position){
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        const accuracy = position.coords.accuracy;
+
+                        document.getElementById("locationResult").innerHTML =
+                            `
+                            緯度:${lat}<br>
+                            経度:${lng}<br>
+                            精度:${accuracy}m
+                            `;
+
+                        map.setView([lat,lng],18);
+
+                        L.marker([lat,lng])
+                        .addTo(map)
+                        .bindPopup("現在位置")
+                        .openPopup();
+                    },
+
+                    function(error){
+
+                        let msg = "";
+
+                        switch(error.code){
+                            case 1:
+                            msg = "権限拒否";
+                            break;
+                            case 2:
+                            msg = "位置取得不可";
+                            break;
+                            case 3:
+                            msg = "タイムアウト";
+                            break;
+                            default:
+                            msg = error.message;
+                        }
+
+                        document.getElementById("locationResult").innerText =
+                        msg;
+                    },
+
+                    {
+                        enableHighAccuracy:true,
+                        timeout:10000,
+                        maximumAge:0
+                    }
+                );
+            }
+
+            checkPermission();
+
+        </script>
+
+    </body>
+</html>

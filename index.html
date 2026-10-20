@@ -24,6 +24,9 @@
                 height:400px;
                 margin-top:20px;
             }
+            button{
+                font-size: 2em;
+            }
         </style>
     </head>
 
@@ -33,12 +36,15 @@
 
         <div class="status">
             ① 端末位置情報状態（推定）:
-            <span id="devicePermission">確認中...</span>
+            <span id="devicePermission">―</span>
         </div>
 
         <div class="status">
             ② ブラウザ権限状態（推定）:
-            <span id="browserPermission">確認中...</span>
+            <span id="browserPermission">―</span>
+            <br>granted → 許可済み
+            <br>prompt → 未許可（確認待ち）
+            <br>denied → 拒否
         </div>
 
         <div class="status">
@@ -46,7 +52,7 @@
             <span id="locationResult">未取得</span>
         </div>
 
-        <button onclick="checkLocation()">位置情報取得テスト</button>
+        <button onclick="checkLocation()">位置情報取得実行</button>
 
         <div id="map"></div>
 
@@ -109,7 +115,7 @@
 
                         document.getElementById("locationResult").innerHTML =
                             `
-                            緯度:${lat}<br>
+                            <br>緯度:${lat}<br>
                             経度:${lng}<br>
                             精度:${accuracy}m
                             `;
